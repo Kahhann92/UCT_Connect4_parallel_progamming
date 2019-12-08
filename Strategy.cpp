@@ -10,45 +10,45 @@
 
 using namespace std;
 
-const double c = 0.6625, err = 0.000001; //err ÓÃÓÚÆ½ÒÆ£¬ÒÔÃâ³öÏÖ0/0µÄÇé¿ö
-const int MAX_NODE = 10000000;
-const int MAX_ITERATIONS = 800000;
-int _noX, _noY, boardRow, boardCol, p;
-int firstChild[MAX_NODE],lastChild[MAX_NODE],father[MAX_NODE]; //to indicate the relation of the mentioned node
+const double c = 0.6625, err = 0.000001; //err ç”¨äºå¹³ç§»ï¼Œä»¥å…å‡ºç°0/0çš„æƒ…å†µ
+const int MAX_NODE = 10000000;      //set the maximum number of nodes available
+const int MAX_ITERATIONS = 800000;  //set a max iterations so that it won't go out of the maximum arrays allowable
+int _noX, _noY, boardRow, boardCol; //main parameters of the chess board
+int layer,firstChild[MAX_NODE],lastChild[MAX_NODE],father[MAX_NODE]; //to indicate the relation of the mentioned node
 int reward[MAX_NODE],totalCount[MAX_NODE],locX[MAX_NODE],locY[MAX_NODE],result[MAX_NODE]; //all the variables related to the node
 bool user[MAX_NODE];   //player
 int** board1; //copy board
 int top1[12]; //top
 
 /*
-	²ßÂÔº¯Êı½Ó¿Ú,¸Ãº¯Êı±»¶Ô¿¹Æ½Ì¨µ÷ÓÃ,Ã¿´Î´«Èëµ±Ç°×´Ì¬,ÒªÇóÊä³öÄãµÄÂä×Óµã,¸ÃÂä×Óµã±ØĞëÊÇÒ»¸ö·ûºÏÓÎÏ·¹æÔòµÄÂä×Óµã,²»È»¶Ô¿¹Æ½Ì¨»áÖ±½ÓÈÏÎªÄãµÄ³ÌĞòÓĞÎó
+	ç­–ç•¥å‡½æ•°æ¥å£,è¯¥å‡½æ•°è¢«å¯¹æŠ—å¹³å°è°ƒç”¨,æ¯æ¬¡ä¼ å…¥å½“å‰çŠ¶æ€,è¦æ±‚è¾“å‡ºä½ çš„è½å­ç‚¹,è¯¥è½å­ç‚¹å¿…é¡»æ˜¯ä¸€ä¸ªç¬¦åˆæ¸¸æˆè§„åˆ™çš„è½å­ç‚¹,ä¸ç„¶å¯¹æŠ—å¹³å°ä¼šç›´æ¥è®¤ä¸ºä½ çš„ç¨‹åºæœ‰è¯¯
 	
 	input:
-		ÎªÁË·ÀÖ¹¶Ô¶Ô¿¹Æ½Ì¨Î¬»¤µÄÊı¾İÔì³É¸ü¸Ä£¬ËùÓĞ´«ÈëµÄ²ÎÊı¾ùÎªconstÊôĞÔ
-		M, N : ÆåÅÌ´óĞ¡ M - ĞĞÊı N - ÁĞÊı ¾ù´Ó0¿ªÊ¼¼Æ£¬ ×óÉÏ½ÇÎª×ø±êÔ­µã£¬ĞĞÓÃx±ê¼Ç£¬ÁĞÓÃy±ê¼Ç
-		top : µ±Ç°ÆåÅÌÃ¿Ò»ÁĞÁĞ¶¥µÄÊµ¼ÊÎ»ÖÃ. e.g. µÚiÁĞÎª¿Õ,Ôò_top[i] == M, µÚiÁĞÒÑÂú,Ôò_top[i] == 0
-		_board : ÆåÅÌµÄÒ»Î¬Êı×é±íÊ¾, ÎªÁË·½±ãÊ¹ÓÃ£¬ÔÚ¸Ãº¯Êı¸Õ¿ªÊ¼´¦£¬ÎÒÃÇÒÑ¾­½«Æä×ª»¯ÎªÁË¶şÎ¬Êı×éboard
-				ÄãÖ»ĞèÖ±½ÓÊ¹ÓÃboard¼´¿É£¬×óÉÏ½ÇÎª×ø±êÔ­µã£¬Êı×é´Ó[0][0]¿ªÊ¼¼Æ(²»ÊÇ[1][1])
-				board[x][y]±íÊ¾µÚxĞĞ¡¢µÚyÁĞµÄµã(´Ó0¿ªÊ¼¼Æ)
-				board[x][y] == 0/1/2 ·Ö±ğ¶ÔÓ¦(x,y)´¦ ÎŞÂä×Ó/ÓĞÓÃ»§µÄ×Ó/ÓĞ³ÌĞòµÄ×Ó,²»¿ÉÂä×Óµã´¦µÄÖµÒ²Îª0
-		lastX, lastY : ¶Ô·½ÉÏÒ»´ÎÂä×ÓµÄÎ»ÖÃ, Äã¿ÉÄÜ²»ĞèÒª¸Ã²ÎÊı£¬Ò²¿ÉÄÜĞèÒªµÄ²»½ö½öÊÇ¶Ô·½Ò»²½µÄ
-				Âä×ÓÎ»ÖÃ£¬ÕâÊ±Äã¿ÉÒÔÔÚ×Ô¼ºµÄ³ÌĞòÖĞ¼ÇÂ¼¶Ô·½Á¬Ğø¶à²½µÄÂä×ÓÎ»ÖÃ£¬ÕâÍêÈ«È¡¾öÓÚÄã×Ô¼ºµÄ²ßÂÔ
-		noX, noY : ÆåÅÌÉÏµÄ²»¿ÉÂä×Óµã(×¢:ÆäÊµÕâÀï¸ø³öµÄtopÒÑ¾­ÌæÄã´¦ÀíÁË²»¿ÉÂä×Óµã£¬Ò²¾ÍÊÇËµÈç¹ûÄ³Ò»²½
-				ËùÂäµÄ×ÓµÄÉÏÃæÇ¡ÊÇ²»¿ÉÂä×Óµã£¬ÄÇÃ´UI¹¤³ÌÖĞµÄ´úÂë¾ÍÒÑ¾­½«¸ÃÁĞµÄtopÖµÓÖ½øĞĞÁËÒ»´Î¼õÒ»²Ù×÷£¬
-				ËùÒÔÔÚÄãµÄ´úÂëÖĞÒ²¿ÉÒÔ¸ù±¾²»Ê¹ÓÃnoXºÍnoYÕâÁ½¸ö²ÎÊı£¬ÍêÈ«ÈÏÎªtopÊı×é¾ÍÊÇµ±Ç°Ã¿ÁĞµÄ¶¥²¿¼´¿É,
-				µ±È»Èç¹ûÄãÏëÊ¹ÓÃlastX,lastY²ÎÊı£¬ÓĞ¿ÉÄÜ¾ÍÒªÍ¬Ê±¿¼ÂÇnoXºÍnoYÁË)
-		ÒÔÉÏ²ÎÊıÊµ¼ÊÉÏ°üº¬ÁËµ±Ç°×´Ì¬(M N _top _board)ÒÔ¼°ÀúÊ·ĞÅÏ¢(lastX lastY),ÄãÒª×öµÄ¾ÍÊÇÔÚÕâĞ©ĞÅÏ¢ÏÂ¸ø³ö¾¡¿ÉÄÜÃ÷ÖÇµÄÂä×Óµã
+		ä¸ºäº†é˜²æ­¢å¯¹å¯¹æŠ—å¹³å°ç»´æŠ¤çš„æ•°æ®é€ æˆæ›´æ”¹ï¼Œæ‰€æœ‰ä¼ å…¥çš„å‚æ•°å‡ä¸ºconstå±æ€§
+		M, N : æ£‹ç›˜å¤§å° M - è¡Œæ•° N - åˆ—æ•° å‡ä»0å¼€å§‹è®¡ï¼Œ å·¦ä¸Šè§’ä¸ºåæ ‡åŸç‚¹ï¼Œè¡Œç”¨xæ ‡è®°ï¼Œåˆ—ç”¨yæ ‡è®°
+		top : å½“å‰æ£‹ç›˜æ¯ä¸€åˆ—åˆ—é¡¶çš„å®é™…ä½ç½®. e.g. ç¬¬iåˆ—ä¸ºç©º,åˆ™_top[i] == M, ç¬¬iåˆ—å·²æ»¡,åˆ™_top[i] == 0
+		_board : æ£‹ç›˜çš„ä¸€ç»´æ•°ç»„è¡¨ç¤º, ä¸ºäº†æ–¹ä¾¿ä½¿ç”¨ï¼Œåœ¨è¯¥å‡½æ•°åˆšå¼€å§‹å¤„ï¼Œæˆ‘ä»¬å·²ç»å°†å…¶è½¬åŒ–ä¸ºäº†äºŒç»´æ•°ç»„board
+				ä½ åªéœ€ç›´æ¥ä½¿ç”¨boardå³å¯ï¼Œå·¦ä¸Šè§’ä¸ºåæ ‡åŸç‚¹ï¼Œæ•°ç»„ä»[0][0]å¼€å§‹è®¡(ä¸æ˜¯[1][1])
+				board[x][y]è¡¨ç¤ºç¬¬xè¡Œã€ç¬¬yåˆ—çš„ç‚¹(ä»0å¼€å§‹è®¡)
+				board[x][y] == 0/1/2 åˆ†åˆ«å¯¹åº”(x,y)å¤„ æ— è½å­/æœ‰ç”¨æˆ·çš„å­/æœ‰ç¨‹åºçš„å­,ä¸å¯è½å­ç‚¹å¤„çš„å€¼ä¹Ÿä¸º0
+		lastX, lastY : å¯¹æ–¹ä¸Šä¸€æ¬¡è½å­çš„ä½ç½®, ä½ å¯èƒ½ä¸éœ€è¦è¯¥å‚æ•°ï¼Œä¹Ÿå¯èƒ½éœ€è¦çš„ä¸ä»…ä»…æ˜¯å¯¹æ–¹ä¸€æ­¥çš„
+				è½å­ä½ç½®ï¼Œè¿™æ—¶ä½ å¯ä»¥åœ¨è‡ªå·±çš„ç¨‹åºä¸­è®°å½•å¯¹æ–¹è¿ç»­å¤šæ­¥çš„è½å­ä½ç½®ï¼Œè¿™å®Œå…¨å–å†³äºä½ è‡ªå·±çš„ç­–ç•¥
+		noX, noY : æ£‹ç›˜ä¸Šçš„ä¸å¯è½å­ç‚¹(æ³¨:å…¶å®è¿™é‡Œç»™å‡ºçš„topå·²ç»æ›¿ä½ å¤„ç†äº†ä¸å¯è½å­ç‚¹ï¼Œä¹Ÿå°±æ˜¯è¯´å¦‚æœæŸä¸€æ­¥
+				æ‰€è½çš„å­çš„ä¸Šé¢æ°æ˜¯ä¸å¯è½å­ç‚¹ï¼Œé‚£ä¹ˆUIå·¥ç¨‹ä¸­çš„ä»£ç å°±å·²ç»å°†è¯¥åˆ—çš„topå€¼åˆè¿›è¡Œäº†ä¸€æ¬¡å‡ä¸€æ“ä½œï¼Œ
+				æ‰€ä»¥åœ¨ä½ çš„ä»£ç ä¸­ä¹Ÿå¯ä»¥æ ¹æœ¬ä¸ä½¿ç”¨noXå’ŒnoYè¿™ä¸¤ä¸ªå‚æ•°ï¼Œå®Œå…¨è®¤ä¸ºtopæ•°ç»„å°±æ˜¯å½“å‰æ¯åˆ—çš„é¡¶éƒ¨å³å¯,
+				å½“ç„¶å¦‚æœä½ æƒ³ä½¿ç”¨lastX,lastYå‚æ•°ï¼Œæœ‰å¯èƒ½å°±è¦åŒæ—¶è€ƒè™‘noXå’ŒnoYäº†)
+		ä»¥ä¸Šå‚æ•°å®é™…ä¸ŠåŒ…å«äº†å½“å‰çŠ¶æ€(M N _top _board)ä»¥åŠå†å²ä¿¡æ¯(lastX lastY),ä½ è¦åšçš„å°±æ˜¯åœ¨è¿™äº›ä¿¡æ¯ä¸‹ç»™å‡ºå°½å¯èƒ½æ˜æ™ºçš„è½å­ç‚¹
 	output:
-		ÄãµÄÂä×ÓµãPoint
+		ä½ çš„è½å­ç‚¹Point
 */
 extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const int* top, const int* _board, 
 	const int lastX, const int lastY, const int noX, const int noY){
 	/*
-		²»Òª¸ü¸ÄÕâ¶Î´úÂë
+		ä¸è¦æ›´æ”¹è¿™æ®µä»£ç 
 	*/
 	std::clock_t start = std::clock();
 	srand(time(NULL));
-	int x = -1, y = -1;//×îÖÕ½«ÄãµÄÂä×Óµã´æµ½x,yÖĞ
+	int x = -1, y = -1;//æœ€ç»ˆå°†ä½ çš„è½å­ç‚¹å­˜åˆ°x,yä¸­
 	
 	board1 = new int*[M];
 	int** board = new int*[M];
@@ -61,8 +61,8 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 	}
 	
 	/*
-		¸ù¾İÄã×Ô¼ºµÄ²ßÂÔÀ´·µ»ØÂä×Óµã,Ò²¾ÍÊÇ¸ù¾İÄãµÄ²ßÂÔÍê³É¶Ôx,yµÄ¸³Öµ
-		¸Ã²¿·Ö¶Ô²ÎÊıÊ¹ÓÃÃ»ÓĞÏŞÖÆ£¬ÎªÁË·½±ãÊµÏÖ£¬Äã¿ÉÒÔ¶¨Òå×Ô¼ºĞÂµÄÀà¡¢.hÎÄ¼ş¡¢.cppÎÄ¼ş
+		æ ¹æ®ä½ è‡ªå·±çš„ç­–ç•¥æ¥è¿”å›è½å­ç‚¹,ä¹Ÿå°±æ˜¯æ ¹æ®ä½ çš„ç­–ç•¥å®Œæˆå¯¹x,yçš„èµ‹å€¼
+		è¯¥éƒ¨åˆ†å¯¹å‚æ•°ä½¿ç”¨æ²¡æœ‰é™åˆ¶ï¼Œä¸ºäº†æ–¹ä¾¿å®ç°ï¼Œä½ å¯ä»¥å®šä¹‰è‡ªå·±æ–°çš„ç±»ã€.hæ–‡ä»¶ã€.cppæ–‡ä»¶
 	*/
 	//Add your own code below
 	/*
@@ -93,28 +93,38 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 		for(int i = 0; i < boardCol; i++)
 			top1[i] = top[i];
 
-		int t = 0; //back to rootroot
 
 
-		while(firstChild[t] !=-1)						//tree policy
+		int t = 0;										//back to root
+
+
+
+
+		while(firstChild[t] !=-1)						//UCT tree policy
 		{
 			t = BestChildNode(t,c);
 			putLoc(locX[t],locY[t],user[t]);
 		}
+
+
 
 		if(totalCount[t] ==0)							//first encountered node, check result
 		{
 			result[t] = checkResult(locX[t],locY[t],user[t]);
 		}
 
-		if(result[t] != -2)   // the game is end, either win, lose or tie, do backup
+
+
+		if(result[t] != -2)								// the game is end, either win, lose or tie, do backup
 		{
 			int temp = result[t];
 			t = backUp(std::make_pair(temp , t));
 			continue;
 		}
 
-		t = backUp(DefaultPolicy(t));
+
+
+		t = backUp(DefaultPolicy(t));					// save the best t first, in case the time ended.
 
 
 	}
@@ -131,7 +141,7 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 
 
 	/*
-	²»Òª¸ü¸ÄÕâ¶Î´úÂë
+	ä¸è¦æ›´æ”¹è¿™æ®µä»£ç 
 	*/
 	clearArray(M, N, board);
 	return new Point(x, y);
@@ -139,8 +149,8 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 
 
 /*
-	getPointº¯Êı·µ»ØµÄPointÖ¸ÕëÊÇÔÚ±¾dllÄ£¿éÖĞÉùÃ÷µÄ£¬Îª±ÜÃâ²úÉú¶Ñ´íÎó£¬Ó¦ÔÚÍâ²¿µ÷ÓÃ±¾dllÖĞµÄ
-	º¯ÊıÀ´ÊÍ·Å¿Õ¼ä£¬¶ø²»Ó¦¸ÃÔÚÍâ²¿Ö±½Ódelete
+	getPointå‡½æ•°è¿”å›çš„PointæŒ‡é’ˆæ˜¯åœ¨æœ¬dllæ¨¡å—ä¸­å£°æ˜çš„ï¼Œä¸ºé¿å…äº§ç”Ÿå †é”™è¯¯ï¼Œåº”åœ¨å¤–éƒ¨è°ƒç”¨æœ¬dllä¸­çš„
+	å‡½æ•°æ¥é‡Šæ”¾ç©ºé—´ï¼Œè€Œä¸åº”è¯¥åœ¨å¤–éƒ¨ç›´æ¥delete
 */
 extern "C" __declspec(dllexport) void clearPoint(Point* p){
 	delete p;
@@ -148,7 +158,7 @@ extern "C" __declspec(dllexport) void clearPoint(Point* p){
 }
 
 /*
-	Çå³ıtopºÍboardÊı×é
+	æ¸…é™¤topå’Œboardæ•°ç»„
 */
 void clearArray(int M, int N, int** board){
 	for(int i = 0; i < M; i++){
@@ -159,7 +169,7 @@ void clearArray(int M, int N, int** board){
 
 
 /*
-	Ìí¼ÓÄã×Ô¼ºµÄ¸¨Öúº¯Êı£¬Äã¿ÉÒÔÉùÃ÷×Ô¼ºµÄÀà¡¢º¯Êı£¬Ìí¼ÓĞÂµÄ.h .cppÎÄ¼şÀ´¸¨ÖúÊµÏÖÄãµÄÏë·¨
+	æ·»åŠ ä½ è‡ªå·±çš„è¾…åŠ©å‡½æ•°ï¼Œä½ å¯ä»¥å£°æ˜è‡ªå·±çš„ç±»ã€å‡½æ•°ï¼Œæ·»åŠ æ–°çš„.h .cppæ–‡ä»¶æ¥è¾…åŠ©å®ç°ä½ çš„æƒ³æ³•
 */
 int TreePolicy(int t)
 {
@@ -170,18 +180,19 @@ int TreePolicy(int t)
 
 int BestChildNode(int t, double inputC)
 {
-	double compare =-100000, uct;
+	double compare =-100000;
+	double UCB;
 	int ans = 1;
 	for( int i = firstChild[t]; i <= lastChild[t]; i++)
 	{
 		if( user[t] == 0 )
-			uct = (double)reward[i] / ((double)totalCount[i] + err) + inputC * sqrt(2 * log((double)totalCount[father[i]] + 1.001) / ((double)totalCount[i] + err));
+			UCB = (double)reward[i] / ((double)totalCount[i] + err) + inputC * sqrt(2 * log((double)totalCount[father[i]] + 1) / ((double)totalCount[i] + err));
 		else
-			uct = -(double)reward[i] / ((double)totalCount[i] + err) + inputC * sqrt(2 * log((double)totalCount[father[i]] + 1.001) / ((double)totalCount[i] + err));
+			UCB = -(double)reward[i] / ((double)totalCount[i] + err) + inputC * sqrt(2 * log((double)totalCount[father[i]] + 1) / ((double)totalCount[i] + err));
 
-		if( uct > compare )
+		if( UCB > compare )
 		{
-			compare = uct;
+			compare = UCB;
 			ans = i;
 		}
 	}
@@ -211,36 +222,31 @@ void boardInitialization(int M, int N, int noX, int noY)
 	boardCol = N;
 	_noX = noX;
 	_noY = noY;
-	p = 0;
+	layer = 0;
 	firstChild[0] = -1;
 	user[0] =0;
 	result[0] = -2;
-}
-
-void boardRenew(int** inBoard, const int* inTop)
-{
-
 }
 
 std::pair<int, int> DefaultPolicy(int state)
 {
 
 	//open all available nodes
-	firstChild[state] = p + 1;
+	firstChild[state] = layer + 1;
 	for(int i = 0; i < boardCol; i++)        
 	{
 		if(top1[i] > 0)
 		{
-			firstChild[++p] = -1;
-			reward[p] = totalCount[p] = 0;
-			father[p] = state;
-			user[p] = !user[state];              //different from the last step
-			locX[p] = top1[i] - 1;
-			locY[p] = i;
-			result[p] = -2;						//mark that its not done
+			firstChild[++layer] = -1;
+			reward[layer] = totalCount[layer] = 0;
+			father[layer] = state;
+			user[layer] = !user[state];              //different from the last step
+			locX[layer] = top1[i] - 1;
+			locY[layer] = i;
+			result[layer] = -2;						//mark that its not done
 		}
 	}
-	lastChild[state] = p;
+	lastChild[state] = layer;
 	int k = rand() % (lastChild[state] - firstChild[state] + 1) + firstChild[state]; //randomly select a point to put
 	putLoc(locX[k],locY[k],user[k]);
 	int delta = checkResult(locX[k],locY[k],user[k]);

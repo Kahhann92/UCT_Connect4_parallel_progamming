@@ -1,6 +1,6 @@
 /********************************************************
-*	Strategy.h : ²ßÂÔ½Ó¿ÚÎÄ¼ş                           *
-*	ÕÅÓÀ·æ                                              *
+*	Strategy.h : ç­–ç•¥æ¥å£æ–‡ä»¶                           *
+*	å¼ æ°¸é”‹                                              *
 *	zhangyf07@gmail.com                                 *
 *	2010.8                                              *
 *********************************************************/
@@ -18,7 +18,7 @@ extern "C" __declspec(dllexport) void clearPoint(Point* p);
 void clearArray(int M, int N, int** board);
 
 /*
-	Ìí¼ÓÄã×Ô¼ºµÄ¸¨Öúº¯Êı
+	æ·»åŠ ä½ è‡ªå·±çš„è¾…åŠ©å‡½æ•°
 */
 
 int TreePolicy(int t);
@@ -26,7 +26,6 @@ void putLoc(int x, int y, bool u);
 int checkResult(int x, int y, bool u);
 int BestChildNode(int t, double inputC);
 void boardInitialization(int M, int N, int noX, int noY);
-void boardRenew(int** inBoard, const int* inTop);
 std::pair<int, int> DefaultPolicy(int state);
 int backUp(std::pair<int, int> input);
 

@@ -93,38 +93,31 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 		for(int i = 0; i < boardCol; i++)
 			top1[i] = top[i];
 
+		int t = 0;							//back to root
 
 
-		int t = 0;										//back to root
-
-
-
-
-		while(firstChild[t] !=-1)						//UCT tree policy
+		//tree policy starts
+		while(firstChild[t] !=-1)						
 		{
 			t = BestChildNode(t,c);
 			putLoc(locX[t],locY[t],user[t]);
 		}
 
-
-
-		if(totalCount[t] ==0)							//first encountered node, check result
+		if(totalCount[t] ==0)				//first encountered node, check result
 		{
 			result[t] = checkResult(locX[t],locY[t],user[t]);
 		}
 
-
-
-		if(result[t] != -2)								// the game is end, either win, lose or tie, do backup
+		if(result[t] != -2)				// the game is end, either win, lose or tie, do backup
 		{
 			int temp = result[t];
 			t = backUp(std::make_pair(temp , t));
 			continue;
 		}
-
-
-
-		t = backUp(DefaultPolicy(t));					// save the best t first, in case the time ended.
+		
+		//tree policy ends
+		
+		t = backUp(DefaultPolicy(t));					
 
 
 	}

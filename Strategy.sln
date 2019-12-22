@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Strategy", "Strategy.vcxproj", "{CC9130DD-7158-4E02-AA8F-1CBAC564F4A8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "subprocess", "subprocess\subprocess.vcxproj", "{A459D47E-315B-4AB2-9598-57D3A47995FF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CC9130DD-7158-4E02-AA8F-1CBAC564F4A8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CC9130DD-7158-4E02-AA8F-1CBAC564F4A8}.Debug|Win32.Build.0 = Debug|Win32
+		{CC9130DD-7158-4E02-AA8F-1CBAC564F4A8}.Release|Win32.ActiveCfg = Release|Win32
+		{CC9130DD-7158-4E02-AA8F-1CBAC564F4A8}.Release|Win32.Build.0 = Release|Win32
+		{A459D47E-315B-4AB2-9598-57D3A47995FF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A459D47E-315B-4AB2-9598-57D3A47995FF}.Debug|Win32.Build.0 = Debug|Win32
+		{A459D47E-315B-4AB2-9598-57D3A47995FF}.Release|Win32.ActiveCfg = Release|Win32
+		{A459D47E-315B-4AB2-9598-57D3A47995FF}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,7 @@
+*.exe
+*.obj
+*.dll
+*.opensdf
+*.sdf
+Release/
+Debug/

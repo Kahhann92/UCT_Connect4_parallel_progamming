@@ -8,18 +8,20 @@
 #include <cstdio>
 #include <stdlib.h>
 
+#include <mpi.h>
+
 using namespace std;
 
 const double c = 0.6625, err = 0.000001; //err 用于平移，以免出现0/0的情况
 const int MAX_NODE = 10000000;      //set the maximum number of nodes available
-const int MAX_ITERATIONS = 800000;  //set a max iterations so that it won't go out of the maximum arrays allowable
+const int MAX_ITERATIONS = 8000000;  //set a max iterations so that it won't go out of the maximum arrays allowable
 int _noX, _noY, boardRow, boardCol; //main parameters of the chess board
 int layer,firstChild[MAX_NODE],lastChild[MAX_NODE],father[MAX_NODE]; //to indicate the relation of the mentioned node
 int reward[MAX_NODE],totalCount[MAX_NODE],locX[MAX_NODE],locY[MAX_NODE],result[MAX_NODE]; //all the variables related to the node
 bool user[MAX_NODE];   //player
 int** board1; //copy board
 int top1[12]; //top
-
+int testi=0;
 /*
 	策略函数接口,该函数被对抗平台调用,每次传入当前状态,要求输出你的落子点,该落子点必须是一个符合游戏规则的落子点,不然对抗平台会直接认为你的程序有误
 	
@@ -41,11 +43,35 @@ int top1[12]; //top
 	output:
 		你的落子点Point
 */
+
 extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const int* top, const int* _board, 
 	const int lastX, const int lastY, const int noX, const int noY){
 	/*
 		不要更改这段代码
-	*/
+	*/ 
+
+	char child[] = "C:\\Users\\lanvent\\Desktop\\mpi\\AI_Project\\win\\Sourcecode\\UCT_Connect4_parallel_progamming\\Debug\\subprocess.exe";
+	MPI_Comm children,everyone;
+	int THREADSNUM=3;
+	MPI_Comm_spawn(child, MPI_ARGV_NULL, THREADSNUM,MPI_INFO_NULL, 0, MPI_COMM_SELF, &children,MPI_ERRCODES_IGNORE);
+	MPI_Intercomm_merge(children,0,&everyone);
+	
+	MPI_Bcast((void *)&M,1,MPI_INT,0,everyone);
+	MPI_Bcast((void *)&N,1,MPI_INT,0,everyone);
+	MPI_Datatype linetype,boardtype;
+	MPI_Type_contiguous(N,MPI_INT,&linetype);// one line (1xN) 
+	MPI_Type_contiguous(M,linetype,&boardtype);// M line (MxN)
+	MPI_Type_commit(&linetype);
+	MPI_Type_commit(&boardtype);
+	MPI_Bcast((void*)top,1,linetype,0,everyone);
+	MPI_Bcast((void*)_board,1,boardtype,0,everyone);
+	MPI_Comm_disconnect(&children);//需要disconnect 不然子进程不会关闭
+	MPI_Comm_disconnect(&everyone);
+
+	//for(int i=0;i<THREADSNUM;i++){
+	//	MPI_Send(&i,1,MPI_INT,i,i,everyone);
+	//}
+
 	std::clock_t start = std::clock();
 	srand(time(NULL));
 	int x = -1, y = -1;//最终将你的落子点存到x,y中
@@ -121,7 +147,7 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 
 
 	}
-
+	cout<<iterations<<" times"<<endl;
 	int bestNode = BestChildNode(0,0);
 
 	//====================================================================================UCT SEARCH ends

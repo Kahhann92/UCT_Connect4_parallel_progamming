@@ -3,5 +3,6 @@
 *.dll
 *.opensdf
 *.sdf
+*.user
 Release/
 Debug/

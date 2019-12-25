@@ -41,6 +41,24 @@ int top1[12]; //top
 	output:
 		你的落子点Point
 */
+void printBoard(int M,int N,int** board){
+	for(int i = 0; i < M; i++){
+		for(int j = 0; j < N; j++){
+			if(board[i][j] == 0){
+					cout << ". ";
+			}
+			else if(board[i][j] == 2){
+				cout << "A ";
+			}
+			else if(board[i][j] == 1){
+				cout << "B ";
+			}
+		}
+		cout << endl;
+	}
+	return;
+}
+
 extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const int* top, const int* _board, 
 	const int lastX, const int lastY, const int noX, const int noY){
 	/*
@@ -121,7 +139,7 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 
 
 	}
-
+	printBoard(M,N,board);
 	int bestNode = BestChildNode(0,0);
 
 	//====================================================================================UCT SEARCH ends
@@ -183,11 +201,17 @@ int BestChildNode(int t, double inputC)
 		else
 			UCB = -(double)reward[i] / ((double)totalCount[i] + err) + inputC * sqrt(2 * log((double)totalCount[father[i]] + 1) / ((double)totalCount[i] + err));
 
+		if(inputC<err){
+			cout<<locY[i]<<":"<<UCB<<","<<totalCount[i]<<" ";
+		}
 		if( UCB > compare )
 		{
 			compare = UCB;
 			ans = i;
 		}
+	}
+	if(inputC<err){
+		cout<<endl;
 	}
 	return ans;
 }

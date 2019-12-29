@@ -141,7 +141,7 @@ extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const
 	}
 	printBoard(M,N,board);
 	int bestNode = BestChildNode(0,0);
-
+	cout<<iterations<<" times "<<layer<<" layers "<<endl;
 	//====================================================================================UCT SEARCH ends
 
 
